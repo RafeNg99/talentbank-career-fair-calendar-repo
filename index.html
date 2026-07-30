@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talentbank Career Fair Calendar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .year-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .year-selector h2 {
+            font-size: 28px;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .calendar-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .calendar-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .calendar-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .month-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .month-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .day:hover {
+            background: #f1f5f9;
+        }
+
+        .day.empty {
+            cursor: default;
+        }
+
+        .day.today {
+            background: #dbeafe;
+            font-weight: bold;
+        }
+
+        .day.has-event {
+            font-weight: bold;
+        }
+
+        .day.past {
+            opacity: 0.5;
+        }
+
+        .event-dot {
+            width: 6px;
+            height: 6px;
+            background: #2563eb;
+            border-radius: 50%;
+            margin-top: 2px;
+        }
+
+        .event-dot.cancelled {
+            background: #ef4444;
+        }
+
+        .event-dot.full {
+            background: #f59e0b;
+        }
+
+        .event-dot.past {
+            background: #94a3b8;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input:invalid {
+            border-color: #ef4444;
+        }
+
+        .form-group .error-message {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .form-group input:invalid + .error-message {
+            display: block;
+        }
+
+        .event-list {
+            margin-top: 20px;
+        }
+
+        .event-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .event-item h4 {
+            margin-bottom: 5px;
+        }
+
+        .event-item .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-full {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-past {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .admin-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .admin-panel h3 {
+            margin-bottom: 15px;
+        }
+
+        .conflict-warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+
+        .date-warning {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 13px;
+            color: #991b1b;
+        }
+
+        .view-toggle {
+            margin-bottom: 20px;
+        }
+
+        .view-toggle button {
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+        }
+
+        .view-toggle button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .view-toggle button:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .view-toggle button:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        .list-view {
+            display: none;
+        }
+
+        .list-view.active {
+            display: block;
+        }
+
+        .calendar-view {
+            display: block;
+        }
+
+        .calendar-view.hidden {
+            display: none;
+        }
+
+        .registration-form {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-radius: 8px;
+        }
+
+        .registration-form.disabled {
+            background: #f1f5f9;
+            opacity: 0.7;
+        }
+
+        .past-event-notice {
+            background: #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            color: #475569;
+            font-style: italic;
+        }
+
+        .email-hint {
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-controls select {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        @media print {
+            .btn, .modal, .admin-panel, .nav-buttons, .view-toggle, .filter-controls {
+                display: none !important;
+            }
+            .calendar-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">🎓 Talentbank Career Fairs</div>
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="toggleView()">Switch View</button>
+                <button class="btn btn-primary" onclick="openAdminPanel()">Admin Panel</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="calendar-header">
+            <div class="year-selector">
+                <button class="btn btn-secondary" onclick="changeYear(-1)">←</button>
+                <h2 id="currentYear">2026</h2>
+                <button class="btn btn-secondary" onclick="changeYear(1)">→</button>
+            </div>
+            <button class="btn btn-secondary" onclick="window.print()">📄 Print Calendar</button>
+        </div>
+
+        <div class="view-toggle">
+            <button class="active" onclick="switchView('calendar')">Calendar View</button>
+            <button onclick="switchView('list')">List View</button>
+        </div>
+
+        <div id="calendarView" class="calendar-view">
+            <div class="filter-controls">
+                <select id="eventTypeFilter" onchange="renderCalendar()">
+                    <option value="all">All Events</option>
+                    <option value="upcoming">Upcoming Only</option>
+                    <option value="past">Past Events</option>
+                </select>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+
+        <div id="listView" class="list-view">
+            <div class="filter-controls">
+                <select id="listEventFilter" onchange="renderListView()">
+                    <option value="all">All Events</option>
+                    <option value="upcoming">Upcoming & Active</option>
+                    <option value="past">Past Events</option>
+                </select>
+            </div>
+            <div id="eventListContainer"></div>
+        </div>
+    </div>
+
+    <!-- Event Details Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Event Details</h2>
+                <button class="close-btn" onclick="closeModal('eventModal')">&times;</button>
+            </div>
+            <div id="eventDetails"></div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Event Management</h2>
+                <button class="close-btn" onclick="closeModal('adminModal')">&times;</button>
+            </div>
+            
+            <button class="btn btn-primary" onclick="showAddEventForm()" style="margin-bottom: 20px;">+ Add New Event</button>
+            
+            <div id="addEventForm" style="display: none;">
+                <h3 id="formTitle">Add New Career Fair</h3>
+                <form id="eventForm" onsubmit="saveEvent(event)">
+                    <input type="hidden" id="eventId">
+                    <div class="form-group">
+                        <label>Event Name *</label>
+                        <input type="text" id="eventName" required placeholder="e.g., KL Career Fair 2026">
+                    </div>
+                    <div class="form-group">
+                        <label>Start Date *</label>
+                        <input type="date" id="eventDate" required onchange="validateEventDates()">
+                        <div id="dateErrorMessage" class="error-message" style="display: none; color: #ef4444; font-size: 12px; margin-top: 5px;">
+                            Cannot set event date in the past
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>End Date (for multi-day events)</label>
+                        <input type="date" id="eventEndDate" onchange="validateEventDates()">
+                        <div id="endDateErrorMessage" class="error-message" style="display: none; color: #ef4444; font-size: 12px; margin-top: 5px;">
+                            End date must be after the start date
+                        </div>
+                        <div id="endDatePastErrorMessage" class="error-message" style="display: none; color: #ef4444; font-size: 12px; margin-top: 5px;">
+                            End date cannot be in the past
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Location *</label>
+                        <input type="text" id="eventLocation" required placeholder="e.g., KL Convention Centre">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="eventDescription" placeholder="Event details, companies attending, etc."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Capacity (0 = unlimited)</label>
+                        <input type="number" id="eventCapacity" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Registration Link</label>
+                        <input type="url" id="eventRegistrationLink" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="eventStatus">
+                            <option value="active">Active</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="full">Full</option>
+                        </select>
+                    </div>
+                    <div id="dateWarning" class="date-warning" style="display: none;">
+                        ⚠️ Error: Cannot create events with dates in the past. Please select a future date.
+                    </div>
+                    <div id="endDateOrderWarning" class="date-warning" style="display: none;">
+                        ⚠️ Error: End date must be after the start date.
+                    </div>
+                    <div id="conflictWarning" class="conflict-warning" style="display: none;">
+                        ⚠️ Warning: This date conflicts with another event!
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary" id="saveEventBtn">Save Event</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="adminEventList" class="event-list" style="margin-top: 20px;">
+                <h3>All Events</h3>
+                <div id="adminEventsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initial event data
+        let events = [
+            {
+                id: 1,
+                name: "KL Career Fair 2025",
+                date: "2025-01-15",
+                endDate: "2025-01-16",
+                location: "KL Convention Centre",
+                description: "Malaysia's largest career fair featuring over 200 employers. Meet top companies from various industries including tech, finance, and manufacturing.",
+                capacity: 5000,
+                registeredCount: 3200,
+                registrationLink: "https://talentbank.io/register/kl-2025",
+                status: "active"
+            },
+            {
+                id: 2,
+                name: "Penang Tech Talent Expo 2026",
+                date: "2026-02-20",
+                endDate: "",
+                location: "Setia SPICE Convention Centre",
+                description: "Specialized tech career fair focusing on semiconductor, E&E, and software development roles in the Northern Region.",
+                capacity: 2000,
+                registeredCount: 1800,
+                registrationLink: "https://talentbank.io/register/penang-2026",
+                status: "active"
+            },
+            {
+                id: 3,
+                name: "Johor Career Connect 2026",
+                date: "2026-03-10",
+                endDate: "",
+                location: "Persada Johor International Convention Centre",
+                description: "Connecting Southern Region talent with leading employers from Johor, Singapore, and beyond.",
+                capacity: 1500,
+                registeredCount: 1500,
+                registrationLink: "https://talentbank.io/register/johor-2026",
+                status: "full"
+            },
+            {
+                id: 4,
+                name: "Virtual Career Summit 2026",
+                date: "2026-04-05",
+                endDate: "",
+                location: "Online - Virtual Platform",
+                description: "Fully virtual career fair accessible nationwide. Participate from anywhere with internet connection.",
+                capacity: 0,
+                registeredCount: 850,
+                registrationLink: "https://talentbank.io/register/virtual-2026",
+                status: "active"
+            },
+            {
+                id: 5,
+                name: "Sarawak Youth Career Fair 2026",
+                date: "2026-05-22",
+                endDate: "",
+                location: "Borneo Convention Centre Kuching",
+                description: "East Malaysia's premier career event targeting fresh graduates and young professionals.",
+                capacity: 1000,
+                registeredCount: 450,
+                registrationLink: "https://talentbank.io/register/sarawak-2026",
+                status: "active"
+            },
+            {
+                id: 6,
+                name: "Mid-Year Career Boost 2026",
+                date: "2026-06-15",
+                endDate: "",
+                location: "Mid Valley Exhibition Centre",
+                description: "Originally scheduled but cancelled due to venue renovation.",
+                capacity: 3000,
+                registeredCount: 1200,
+                registrationLink: "",
+                status: "cancelled"
+            }
+        ];
+
+        let currentYear = 2026;
+        let currentView = 'calendar';
+        let editingEventId = null;
+
+        // Initialize the application
+        function init() {
+            loadEventsFromStorage();
+            renderCalendar();
+            renderListView();
+            updateYearDisplay();
+        }
+
+        // Load events from localStorage if available
+        function loadEventsFromStorage() {
+            const stored = localStorage.getItem('talentbankEvents');
+            if (stored) {
+                events = JSON.parse(stored);
+            }
+        }
+
+        // Save events to localStorage
+        function saveEventsToStorage() {
+            localStorage.setItem('talentbankEvents', JSON.stringify(events));
+        }
+
+        // Check if a date is in the past
+        function isPastDate(dateStr) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const eventDate = new Date(dateStr + 'T00:00:00');
+            return eventDate < today;
+        }
+
+        // Check if an event is in the past
+        function isPastEvent(event) {
+            const endDate = event.endDate || event.date;
+            return isPastDate(endDate);
+        }
+
+        // Get event display status
+        function getEventDisplayStatus(event) {
+            if (event.status === 'cancelled') return 'cancelled';
+            if (event.status === 'full') return 'full';
+            if (isPastEvent(event)) return 'past';
+            return 'active';
+        }
+
+        // Validate event dates (for admin form) - includes end date must be after start date
+        function validateEventDates() {
+            const dateInput = document.getElementById('eventDate');
+            const endDateInput = document.getElementById('eventEndDate');
+            const dateWarning = document.getElementById('dateWarning');
+            const endDateOrderWarning = document.getElementById('endDateOrderWarning');
+            const dateErrorMessage = document.getElementById('dateErrorMessage');
+            const endDateErrorMessage = document.getElementById('endDateErrorMessage');
+            const endDatePastErrorMessage = document.getElementById('endDatePastErrorMessage');
+            const saveBtn = document.getElementById('saveEventBtn');
+            const eventId = document.getElementById('eventId').value;
+            
+            let hasError = false;
+            
+            // Hide all warnings initially
+            dateWarning.style.display = 'none';
+            endDateOrderWarning.style.display = 'none';
+            dateErrorMessage.style.display = 'none';
+            endDateErrorMessage.style.display = 'none';
+            endDatePastErrorMessage.style.display = 'none';
+            
+            // Check main date is not in the past (for new events only)
+            if (dateInput.value && isPastDate(dateInput.value) && !eventId) {
+                dateErrorMessage.style.display = 'block';
+                dateWarning.style.display = 'block';
+                dateWarning.textContent = '⚠️ Error: Cannot create events with dates in the past. Please select a future date.';
+                hasError = true;
+            }
+            
+            // Check end date if provided
+            if (endDateInput.value) {
+                // Check end date is not in the past (for new events only)
+                if (isPastDate(endDateInput.value) && !eventId) {
+                    endDatePastErrorMessage.style.display = 'block';
+                    if (!hasError) {
+                        dateWarning.style.display = 'block';
+                        dateWarning.textContent = '⚠️ Error: End date cannot be in the past. Please select a future date.';
+                    }
+                    hasError = true;
+                }
+                
+                // Check end date is after start date
+                if (dateInput.value && endDateInput.value <= dateInput.value) {
+                    endDateErrorMessage.style.display = 'block';
+                    endDateOrderWarning.style.display = 'block';
+                    endDateOrderWarning.textContent = '⚠️ Error: End date must be after the start date.';
+                    endDateInput.style.borderColor = '#ef4444';
+                    hasError = true;
+                } else if (dateInput.value && endDateInput.value > dateInput.value) {
+                    endDateInput.style.borderColor = '#10b981';
+                }
+            } else {
+                endDateInput.style.borderColor = '#e2e8f0';
+            }
+            
+            if (!hasError) {
+                checkForConflicts();
+            }
+            
+            saveBtn.disabled = hasError;
+        }
+
+        // Validate email format
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Change year
+        function changeYear(delta) {
+            currentYear += delta;
+            updateYearDisplay();
+            renderCalendar();
+            renderListView();
+        }
+
+        function updateYearDisplay() {
+            document.getElementById('currentYear').textContent = currentYear;
+        }
+
+        // Switch between calendar and list view
+        function switchView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-toggle button').forEach(btn => btn.classList.remove('active'));
+            
+            if (view === 'calendar') {
+                document.getElementById('calendarView').classList.remove('hidden');
+                document.getElementById('listView').classList.remove('active');
+                document.querySelector('.view-toggle button:first-child').classList.add('active');
+            } else {
+                document.getElementById('calendarView').classList.add('hidden');
+                document.getElementById('listView').classList.add('active');
+                document.querySelector('.view-toggle button:last-child').classList.add('active');
+            }
+        }
+
+        function toggleView() {
+            switchView(currentView === 'calendar' ? 'list' : 'calendar');
+        }
+
+        // Render the calendar
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const filterType = document.getElementById('eventTypeFilter')?.value || 'all';
+            const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            grid.innerHTML = '';
+            
+            months.forEach((monthName, monthIndex) => {
+                const monthCard = document.createElement('div');
+                monthCard.className = 'month-card';
+                
+                const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate();
+                const firstDay = new Date(currentYear, monthIndex, 1).getDay();
+                
+                let monthHTML = `<div class="month-name">${monthName} ${currentYear}</div>`;
+                monthHTML += '<div class="weekdays">';
+                ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+                    monthHTML += `<div>${day}</div>`;
+                });
+                monthHTML += '</div><div class="days">';
+                
+                // Add empty cells for days before the first day
+                for (let i = 0; i < firstDay; i++) {
+                    monthHTML += '<div class="day empty"></div>';
+                }
+                
+                // Add day cells
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateStr = `${currentYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const currentDate = new Date(dateStr + 'T00:00:00');
+                    const isPast = currentDate < today;
+                    
+                    let dayEvents = events.filter(e => {
+                        const eventDate = e.date;
+                        const eventEndDate = e.endDate || e.date;
+                        return dateStr >= eventDate && dateStr <= eventEndDate;
+                    });
+                    
+                    // Apply filters
+                    if (filterType === 'upcoming') {
+                        dayEvents = dayEvents.filter(e => !isPastEvent(e) && e.status !== 'cancelled');
+                    } else if (filterType === 'past') {
+                        dayEvents = dayEvents.filter(e => isPastEvent(e) || e.status === 'cancelled');
+                    }
+                    
+                    let classes = ['day'];
+                    if (isPast) {
+                        classes.push('past');
+                    }
+                    if (currentYear === today.getFullYear() && 
+                        monthIndex === today.getMonth() && 
+                        day === today.getDate()) {
+                        classes.push('today');
+                    }
+                    if (dayEvents.length > 0) {
+                        classes.push('has-event');
+                    }
+                    
+                    monthHTML += `<div class="${classes.join(' ')}" onclick="showDayEvents('${dateStr}')" title="${dayEvents.length} event(s)">
+                        ${day}`;
+                    
+                    if (dayEvents.length > 0) {
+                        dayEvents.forEach(event => {
+                            const displayStatus = getEventDisplayStatus(event);
+                            let dotClass = 'event-dot';
+                            if (displayStatus === 'cancelled') dotClass += ' cancelled';
+                            else if (displayStatus === 'full') dotClass += ' full';
+                            else if (displayStatus === 'past') dotClass += ' past';
+                            monthHTML += `<div class="${dotClass}"></div>`;
+                        });
+                    }
+                    
+                    monthHTML += '</div>';
+                }
+                
+                monthHTML += '</div>';
+                monthCard.innerHTML = monthHTML;
+                grid.appendChild(monthCard);
+            });
+        }
+
+        // Show events for a specific day
+        function showDayEvents(dateStr) {
+            const dayEvents = events.filter(e => {
+                const eventDate = e.date;
+                const eventEndDate = e.endDate || e.date;
+                return dateStr >= eventDate && dateStr <= eventEndDate;
+            });
+            
+            if (dayEvents.length === 0) return;
+            
+            const modal = document.getElementById('eventModal');
+            const details = document.getElementById('eventDetails');
+            document.getElementById('modalTitle').textContent = `Events on ${formatDate(dateStr)}`;
+            
+            let html = '';
+            dayEvents.forEach(event => {
+                const displayStatus = getEventDisplayStatus(event);
+                const statusClass = `status-${displayStatus}`;
+                const statusLabel = displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
+                const isPast = isPastEvent(event);
+                
+                html += `
+                    <div class="event-item">
+                        <h4>${event.name} <span class="status-badge ${statusClass}">${statusLabel}</span></h4>
+                        <p><strong>Date:</strong> ${formatDate(event.date)}${event.endDate ? ` - ${formatDate(event.endDate)}` : ''}</p>
+                        <p><strong>Location:</strong> ${event.location}</p>
+                        <p>${event.description || 'No description available.'}</p>
+                        ${event.capacity > 0 ? `<p><strong>Capacity:</strong> ${event.registeredCount}/${event.capacity} registered</p>` : ''}
+                        
+                        ${isPast ? 
+                            `<div class="past-event-notice">
+                                📅 This is a past event. Registration is no longer available.
+                            </div>` :
+                            event.status === 'active' ? 
+                                `<div class="registration-form">
+                                    <h4>Register for this event</h4>
+                                    <form onsubmit="registerForEvent(event, ${event.id})" id="regForm${event.id}">
+                                        <div class="form-group">
+                                            <label>Your Name</label>
+                                            <input type="text" required placeholder="Full name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Your Email</label>
+                                            <input type="email" 
+                                                   required 
+                                                   placeholder="you@company.com" 
+                                                   pattern="[^@\\s]+@[^@\\s]+\\.[^@\\s]+"
+                                                   oninput="validateRegistrationEmail(this, ${event.id})"
+                                                   id="emailInput${event.id}">
+                                            <div class="email-hint">Must be a valid email address (e.g., name@company.com)</div>
+                                            <div class="error-message" id="emailError${event.id}">
+                                                Please enter a complete email address with @ and domain (e.g., name@company.com)
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-success" id="registerBtn${event.id}" disabled>Register Now</button>
+                                    </form>
+                                </div>` :
+                                event.status === 'full' ? '<p><em>This event is fully booked.</em></p>' :
+                                event.status === 'cancelled' ? '<p><em>This event has been cancelled.</em></p>' : ''
+                        }
+                    </div>
+                `;
+            });
+            
+            details.innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        // Validate email for registration form
+        function validateRegistrationEmail(input, eventId) {
+            const registerBtn = document.getElementById(`registerBtn${eventId}`);
+            const emailError = document.getElementById(`emailError${eventId}`);
+            
+            if (input.value && isValidEmail(input.value)) {
+                registerBtn.disabled = false;
+                emailError.style.display = 'none';
+                input.style.borderColor = '#10b981';
+            } else {
+                registerBtn.disabled = true;
+                if (input.value.length > 0) {
+                    emailError.style.display = 'block';
+                    input.style.borderColor = '#ef4444';
+                } else {
+                    emailError.style.display = 'none';
+                    input.style.borderColor = '#e2e8f0';
+                }
+            }
+        }
+
+        // Register for an event
+        function registerForEvent(e, eventId) {
+            e.preventDefault();
+            
+            // Get the email input from the specific form
+            const emailInput = document.getElementById(`emailInput${eventId}`);
+            if (!emailInput || !isValidEmail(emailInput.value)) {
+                alert('Please enter a valid email address with @ and domain (e.g., name@company.com)');
+                return;
+            }
+            
+            const event = events.find(ev => ev.id === eventId);
+            if (!event) return;
+            
+            // Check if event is in the past
+            if (isPastEvent(event)) {
+                alert('Sorry, this event has already passed. Registration is no longer available.');
+                return;
+            }
+            
+            if (event.status === 'active') {
+                event.registeredCount++;
+                if (event.capacity > 0 && event.registeredCount >= event.capacity) {
+                    event.status = 'full';
+                }
+                saveEventsToStorage();
+                renderCalendar();
+                renderListView();
+                closeModal('eventModal');
+                alert(`Registration successful! A confirmation email has been sent to ${emailInput.value}.`);
+            }
+        }
+
+        // Render list view
+        function renderListView() {
+            const container = document.getElementById('eventListContainer');
+            const filterType = document.getElementById('listEventFilter')?.value || 'all';
+            
+            let yearEvents = events.filter(e => {
+                const eventYear = new Date(e.date).getFullYear();
+                return eventYear === currentYear;
+            });
+            
+            // Apply filters
+            if (filterType === 'upcoming') {
+                yearEvents = yearEvents.filter(e => !isPastEvent(e) && e.status !== 'cancelled');
+            } else if (filterType === 'past') {
+                yearEvents = yearEvents.filter(e => isPastEvent(e) || e.status === 'cancelled');
+            }
+            
+            yearEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            let html = '<h2>Career Fairs</h2>';
+            
+            if (yearEvents.length === 0) {
+                html += '<p>No events found for the selected filter.</p>';
+            } else {
+                yearEvents.forEach(event => {
+                    const displayStatus = getEventDisplayStatus(event);
+                    const statusClass = `status-${displayStatus}`;
+                    const statusLabel = displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
+                    const isPast = isPastEvent(event);
+                    
+                    html += `
+                        <div class="event-item">
+                            <h4>${event.name} <span class="status-badge ${statusClass}">${statusLabel}</span></h4>
+                            <p><strong>Date:</strong> ${formatDate(event.date)}${event.endDate ? ` - ${formatDate(event.endDate)}` : ''}</p>
+                            <p><strong>Location:</strong> ${event.location}</p>
+                            <p>${event.description || ''}</p>
+                            ${event.capacity > 0 ? `<p><strong>Registered:</strong> ${event.registeredCount}/${event.capacity}</p>` : ''}
+                            ${isPast ? 
+                                '<p class="past-event-notice">📅 This event has passed</p>' :
+                                event.status === 'active' ? 
+                                    `<button class="btn btn-primary" onclick="showDayEvents('${event.date}')">View & Register</button>` : 
+                                    ''
+                            }
+                        </div>
+                    `;
+                });
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // Admin panel functions
+        function openAdminPanel() {
+            const modal = document.getElementById('adminModal');
+            renderAdminEventList();
+            modal.classList.add('active');
+            
+            // Set min date for the date input to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('eventDate').setAttribute('min', today);
+            document.getElementById('eventEndDate').setAttribute('min', today);
+        }
+
+        function renderAdminEventList() {
+            const container = document.getElementById('adminEventsContainer');
+            let html = '';
+            
+            events.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(event => {
+                const displayStatus = getEventDisplayStatus(event);
+                const statusClass = `status-${displayStatus}`;
+                const statusLabel = displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
+                
+                html += `
+                    <div class="event-item">
+                        <h4>${event.name} <span class="status-badge ${statusClass}">${statusLabel}</span></h4>
+                        <p>Date: ${formatDate(event.date)}${event.endDate ? ` - ${formatDate(event.endDate)}` : ''}</p>
+                        <p>Location: ${event.location}</p>
+                        <div class="event-actions">
+                            <button class="btn btn-secondary" onclick="editEvent(${event.id})">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteEvent(${event.id})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (events.length === 0) {
+                html = '<p>No events created yet.</p>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function showAddEventForm() {
+            document.getElementById('addEventForm').style.display = 'block';
+            document.getElementById('formTitle').textContent = 'Add New Career Fair';
+            document.getElementById('eventForm').reset();
+            document.getElementById('eventId').value = '';
+            document.getElementById('conflictWarning').style.display = 'none';
+            document.getElementById('dateWarning').style.display = 'none';
+            document.getElementById('endDateOrderWarning').style.display = 'none';
+            document.getElementById('dateErrorMessage').style.display = 'none';
+            document.getElementById('endDateErrorMessage').style.display = 'none';
+            document.getElementById('endDatePastErrorMessage').style.display = 'none';
+            document.getElementById('saveEventBtn').disabled = false;
+            
+            // Reset border colors
+            document.getElementById('eventEndDate').style.borderColor = '#e2e8f0';
+            
+            // Set min date for the date inputs
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('eventDate').setAttribute('min', today);
+            document.getElementById('eventEndDate').setAttribute('min', today);
+        }
+
+        function editEvent(id) {
+            const event = events.find(e => e.id === id);
+            if (!event) return;
+            
+            editingEventId = id;
+            document.getElementById('addEventForm').style.display = 'block';
+            document.getElementById('formTitle').textContent = 'Edit Career Fair';
+            document.getElementById('eventId').value = event.id;
+            document.getElementById('eventName').value = event.name;
+            document.getElementById('eventDate').value = event.date;
+            document.getElementById('eventEndDate').value = event.endDate || '';
+            document.getElementById('eventLocation').value = event.location;
+            document.getElementById('eventDescription').value = event.description || '';
+            document.getElementById('eventCapacity').value = event.capacity;
+            document.getElementById('eventRegistrationLink').value = event.registrationLink || '';
+            document.getElementById('eventStatus').value = event.status;
+            
+            // Remove min date restriction when editing existing events
+            document.getElementById('eventDate').removeAttribute('min');
+            document.getElementById('eventEndDate').removeAttribute('min');
+            
+            document.getElementById('dateWarning').style.display = 'none';
+            document.getElementById('endDateOrderWarning').style.display = 'none';
+            document.getElementById('dateErrorMessage').style.display = 'none';
+            document.getElementById('endDateErrorMessage').style.display = 'none';
+            document.getElementById('endDatePastErrorMessage').style.display = 'none';
+            document.getElementById('saveEventBtn').disabled = false;
+            
+            // Reset border colors
+            document.getElementById('eventEndDate').style.borderColor = '#e2e8f0';
+            
+            // Set the min attribute of end date to the start date
+            if (event.date) {
+                document.getElementById('eventEndDate').setAttribute('min', event.date);
+            }
+            
+            checkForConflicts();
+        }
+
+        function cancelEdit() {
+            document.getElementById('addEventForm').style.display = 'none';
+            document.getElementById('eventForm').reset();
+            editingEventId = null;
+            document.getElementById('saveEventBtn').disabled = false;
+            document.getElementById('eventEndDate').style.borderColor = '#e2e8f0';
+        }
+
+        function checkForConflicts() {
+            const date = document.getElementById('eventDate').value;
+            const endDate = document.getElementById('eventEndDate').value || date;
+            const currentId = document.getElementById('eventId').value;
+            
+            // Don't check conflicts if end date is not after start date
+            if (endDate && date && endDate <= date) {
+                document.getElementById('conflictWarning').style.display = 'none';
+                return;
+            }
+            
+            const conflicts = events.filter(e => {
+                if (currentId && e.id === parseInt(currentId)) return false;
+                const eEnd = e.endDate || e.date;
+                return (date <= eEnd && endDate >= e.date);
+            });
+            
+            const warning = document.getElementById('conflictWarning');
+            if (conflicts.length > 0) {
+                warning.style.display = 'block';
+                warning.textContent = `⚠️ Warning: This date conflicts with: ${conflicts.map(e => e.name).join(', ')}`;
+            } else {
+                warning.style.display = 'none';
+            }
+        }
+
+        // Add event listeners for date fields to check conflicts and validate
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('eventDate').addEventListener('change', function() {
+                // Update end date min attribute when start date changes
+                const startDate = this.value;
+                const endDateInput = document.getElementById('eventEndDate');
+                const eventId = document.getElementById('eventId').value;
+                
+                if (startDate && !eventId) {
+                    // For new events, set min of end date to start date (or today if start date is in the past)
+                    const today = new Date().toISOString().split('T')[0];
+                    endDateInput.setAttribute('min', startDate > today ? startDate : today);
+                } else if (startDate) {
+                    // For editing, set min of end date to start date
+                    endDateInput.setAttribute('min', startDate);
+                }
+                
+                validateEventDates();
+                checkForConflicts();
+            });
+            
+            document.getElementById('eventEndDate').addEventListener('change', function() {
+                validateEventDates();
+                checkForConflicts();
+            });
+        });
+
+        function saveEvent(e) {
+            e.preventDefault();
+            
+            const dateValue = document.getElementById('eventDate').value;
+            const endDateValue = document.getElementById('eventEndDate').value;
+            const eventId = document.getElementById('eventId').value;
+            
+            // Validate dates are not in the past for new events
+            if (!eventId) {
+                if (isPastDate(dateValue)) {
+                    alert('Cannot create event: The event date is in the past. Please select a future date.');
+                    return;
+                }
+                if (endDateValue && isPastDate(endDateValue)) {
+                    alert('Cannot create event: The end date is in the past. Please select a future date.');
+                    return;
+                }
+            }
+            
+            // Validate end date is after start date
+            if (endDateValue && dateValue && endDateValue <= dateValue) {
+                alert('Cannot save event: The end date must be after the start date.');
+                return;
+            }
+            
+            const eventData = {
+                name: document.getElementById('eventName').value,
+                date: dateValue,
+                endDate: endDateValue,
+                location: document.getElementById('eventLocation').value,
+                description: document.getElementById('eventDescription').value,
+                capacity: parseInt(document.getElementById('eventCapacity').value) || 0,
+                registrationLink: document.getElementById('eventRegistrationLink').value,
+                status: document.getElementById('eventStatus').value,
+                registeredCount: 0
+            };
+            
+            if (eventId) {
+                // Edit existing event
+                const index = events.findIndex(e => e.id === parseInt(eventId));
+                if (index !== -1) {
+                    eventData.id = parseInt(eventId);
+                    eventData.registeredCount = events[index].registeredCount;
+                    events[index] = eventData;
+                }
+            } else {
+                // Add new event
+                eventData.id = Date.now();
+                events.push(eventData);
+            }
+            
+            saveEventsToStorage();
+            renderCalendar();
+            renderListView();
+            renderAdminEventList();
+            cancelEdit();
+            alert('Event saved successfully!');
+        }
+
+        function deleteEvent(id) {
+            if (confirm('Are you sure you want to delete this event? This cannot be undone.')) {
+                events = events.filter(e => e.id !== id);
+                saveEventsToStorage();
+                renderCalendar();
+                renderListView();
+                renderAdminEventList();
+                alert('Event deleted successfully.');
+            }
+        }
+
+        // Utility functions
+        function formatDate(dateStr) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', options);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'adminModal') {
+                cancelEdit();
+            }
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+                if (event.target.id === 'adminModal') {
+                    cancelEdit();
+                }
+            }
+        }
+
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
